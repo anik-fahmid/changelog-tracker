@@ -138,9 +138,7 @@ echo wp_kses_post( $header_html );
 <!-- Footer -->
 <?php
 $footer_html = '<tr><td style="padding:20px 40px;background-color:#f9fafb;border-top:1px solid #e5e7eb;text-align:center;">'
-    /* translators: %s: plugin name */
-    . '<p style="margin:0;font-size:12px;color:#9ca3af;">' . sprintf( esc_html__( 'Powered by %s', 'changescout' ), '<strong>ChangeScout</strong>' ) . '</p>'
-    . '<p style="margin:6px 0 0;font-size:11px;color:#d1d5db;">' . esc_html__( 'To stop receiving these emails, deactivate the plugin or change the notification email in settings.', 'changescout' ) . '</p>'
+    . '<p style="margin:0;font-size:11px;color:#d1d5db;">' . esc_html__( 'To stop receiving these emails, deactivate the plugin or change the notification email in settings.', 'changescout' ) . '</p>'
     . '</td></tr>';
 echo wp_kses_post( $footer_html );
 ?>

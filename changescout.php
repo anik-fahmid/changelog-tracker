@@ -28,7 +28,7 @@ require_once AICS_PATH . 'includes/class-ai-providers.php';
 require_once AICS_PATH . 'includes/class-email-template.php';
 require_once AICS_PATH . 'includes/class-auto-detect.php';
 
-class AIChangelogSummary {
+class AICS_Changelog_Summary {
 
 	private $default_url_count   = 4;
 	private $max_url_count       = 5;
@@ -861,8 +861,7 @@ class AIChangelogSummary {
 	/* ───────────────────────── AJAX: Preview ──────────────────── */
 
 	public function handle_changelog_fetch() {
-		// Each URL can take up to 2 min (fetch + Jina + AI). Disable PHP time limit.
-		set_time_limit( 0 );
+		// Each URL can take up to 2 min (fetch + Jina + AI).
 		ignore_user_abort( true );
 
 		check_ajax_referer( 'aics_nonce', 'security' );
@@ -899,8 +898,7 @@ class AIChangelogSummary {
 	/* ───────────────────────── AJAX: Force Fetch & Email ──────── */
 
 	public function handle_force_fetch() {
-		// Each URL can take up to 2 min (fetch + Jina + AI). Disable PHP time limit.
-		set_time_limit( 0 );
+		// Each URL can take up to 2 min (fetch + Jina + AI).
 		ignore_user_abort( true );
 
 		check_ajax_referer( 'aics_nonce', 'security' );
@@ -1054,7 +1052,6 @@ class AIChangelogSummary {
 	/* ───────────────────────── AJAX: Test Email ──────────────── */
 
 	public function test_wp_mail() {
-		set_time_limit( 0 );
 		ignore_user_abort( true );
 
 		check_ajax_referer( 'aics_nonce', 'security' );
@@ -1248,10 +1245,10 @@ class AIChangelogSummary {
 /* ───────────────────────── Bootstrap ─────────────────────────── */
 
 register_deactivation_hook( __FILE__, function () {
-	$plugin = new AIChangelogSummary();
+	$plugin = new AICS_Changelog_Summary();
 	$plugin->deactivate();
 } );
 
 add_action( 'plugins_loaded', function () {
-	new AIChangelogSummary();
+	new AICS_Changelog_Summary();
 } );
