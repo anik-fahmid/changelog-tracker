@@ -14,14 +14,25 @@ class AICS_AI_Providers {
      */
     private static $default_prompt = "Carefully analyze the following content. Your task is to:
 
+- First decide whether this is a valid changelog, release feed, or product update feed.
+- Treat dated release announcements, launch posts, integration releases, feature updates, and improvement logs as valid changelog content even if they do not include semantic version numbers.
+- Only classify it as NOT A CHANGELOG if the page does not contain real dated product updates or release entries.
+- Write summaries in natural, human-friendly language for product teams, marketers, and non-technical readers.
+- Focus on what changed, why it matters, and who it is useful for.
+- If the latest update is a new feature, launch, integration, or important product improvement, explain it more clearly and with a bit more detail.
+- If the latest update is mostly bug fixes, maintenance, or security fixes, keep the summary shorter and simpler unless the fix has clear user impact.
+- Avoid robotic phrasing, bullet dumps, and vague filler. Prefer plain English over jargon.
+- Do not invent benefits, use cases, technical details, motivations, or impact that are not supported by the release note content.
+- If something is unclear or not explicitly stated in the release note, do not guess. Stay close to the source text.
+
 - Provide an analysis section with:
   <h3>Product Name: What is the product name?</h3>
-  <h4>Latest Core Version: What is the latest core/free version number, and the release date?</h4>
-  <h4>Release Date: What is the release date for the latest core version?</h4>
-  <h4>Core Release Summary:</h4> Summarize the latest core version release notes in few sentences (Highlight Key Changes, Notable Improvements, Impact Assessment, Breaking Changes).
-  <h4>Latest Pro Version: What is the latest pro/premium version number, and the release date?</h4>
-  <h4>Release Date: What is the release date for the latest pro version?</h4>
-  <h4>Pro Release Summary:</h4> Summarize the latest pro version release notes in few sentences.
+  <h4>Latest Entry Title:</h4> What is the most recent changelog or update entry title?
+  <h4>Latest Entry Date:</h4> What is the date of the most recent changelog or update entry?
+  <h4>Latest Core Version:</h4> What is the latest core/free version number and release date? If not stated, write 'Not stated on page'.
+  <h4>Core Release Summary:</h4> Summarize the latest core version release notes in a few sentences. If the page is a changelog but does not separate core/free releases, summarize the latest relevant changelog entry here instead. Make the summary readable and useful to a human. Clearly explain important features, launches, and integrations. Keep routine bug-fix or security-only summaries more concise unless user impact is explicitly described.
+  <h4>Latest Pro Version:</h4> What is the latest pro/premium version number and release date? If not stated, write 'Not stated on page'.
+  <h4>Pro Release Summary:</h4> Summarize the latest pro version release notes in a few sentences. If there is no separate pro release on the page, write 'Not stated on page'. Make the summary readable and useful to a human. Clearly explain important features, launches, and integrations. Keep routine bug-fix or security-only summaries more concise unless user impact is explicitly described.
 
 If it is NOT a changelog:
   Respond with a clear message: <h4>NOT A CHANGELOG: This page does not appear to be a valid changelog. It may be a generic page, documentation, or unrelated content.</h4>

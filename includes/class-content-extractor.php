@@ -2,9 +2,10 @@
 /**
  * Multi-strategy content extractor for changelog pages.
  *
- * Strategy 1: Jina Reader API — converts any URL to clean markdown.
+ * Strategy 1: Embedded page-data extraction (e.g. Next.js / Featurebase).
  * Strategy 2: Local DOMDocument — XPath selectors + noise stripping.
- * Strategy 3: Raw body text fallback.
+ * Strategy 3: Jina Reader API — converts any URL to clean markdown.
+ * Strategy 4: Raw body text fallback.
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -31,7 +32,24 @@ class AICS_Content_Extractor {
      * @return string Extracted content (markdown or HTML).
      */
     public static function extract( $html, $url = '' ) {
-        // Strategy 1: Jina Reader API — clean markdown from any page.
+        // Strategy 1: Extract structured post data embedded in the page HTML.
+        if ( ! empty( $html ) ) {
+            $content = self::extract_from_page_data( $html );
+            if ( self::is_meaningful( $content ) ) {
+                return self::truncate( $content );
+            }
+        }
+
+        // Strategy 2: Local DOMDocument extraction from the fetched page HTML.
+        if ( ! empty( $html ) ) {
+            $content = self::extract_from_html( $html );
+            if ( self::is_meaningful( $content ) ) {
+                return $content;
+            }
+        }
+
+        // Strategy 3: Jina Reader API — useful when the source page is JS-heavy
+        // or the fetched HTML does not contain enough readable changelog content.
         if ( ! empty( $url ) ) {
             $content = self::extract_via_jina( $url );
             if ( self::is_meaningful( $content ) ) {
@@ -40,15 +58,87 @@ class AICS_Content_Extractor {
             }
         }
 
-        // Strategy 2: Local DOMDocument extraction.
-        if ( ! empty( $html ) ) {
-            $content = self::extract_from_html( $html );
-            if ( ! empty( $content ) ) {
-                return $content;
-            }
+        return '';
+    }
+
+    /**
+     * Extract changelog entries from embedded page data such as Next.js __NEXT_DATA__.
+     *
+     * @param string $html Full page HTML.
+     * @return string
+     */
+    private static function extract_from_page_data( $html ) {
+        if ( ! preg_match( '/<script id="__NEXT_DATA__"[^>]*>(.*?)<\/script>/s', $html, $matches ) ) {
+            return '';
         }
 
-        return '';
+        $json = html_entity_decode( $matches[1], ENT_QUOTES | ENT_HTML5, 'UTF-8' );
+        $data = json_decode( $json, true );
+        if ( ! is_array( $data ) ) {
+            return '';
+        }
+
+        $entries = [];
+        self::collect_changelog_entries( $data, $entries );
+
+        if ( empty( $entries ) ) {
+            return '';
+        }
+
+        $output = [];
+        foreach ( array_slice( $entries, 0, self::MAX_VERSIONS_PER_SECTION ) as $entry ) {
+            $title   = trim( wp_strip_all_tags( $entry['title'] ?? '' ) );
+            $content = trim( $entry['content'] ?? '' );
+            $date    = trim( $entry['date'] ?? '' );
+
+            if ( empty( $title ) || empty( $content ) ) {
+                continue;
+            }
+
+            if ( ! empty( $date ) ) {
+                $output[] = '## ' . $title . ' (' . $date . ')';
+            } else {
+                $output[] = '## ' . $title;
+            }
+
+            $output[] = wp_strip_all_tags( $content );
+        }
+
+        return trim( implode( "\n\n", $output ) );
+    }
+
+    /**
+     * Recursively collect structured changelog entries from embedded JSON data.
+     *
+     * @param mixed $node Current node.
+     * @param array $entries Collected entries.
+     * @return void
+     */
+    private static function collect_changelog_entries( $node, &$entries ) {
+        if ( is_array( $node ) ) {
+            $is_assoc = array_keys( $node ) !== range( 0, count( $node ) - 1 );
+
+            if ( $is_assoc ) {
+                if (
+                    isset( $node['type'], $node['title'], $node['content'] ) &&
+                    'changelog' === $node['type']
+                ) {
+                    $entries[] = [
+                        'title'   => $node['title'],
+                        'content' => $node['content'],
+                        'date'    => $node['date'] ?? '',
+                    ];
+                }
+
+                foreach ( $node as $value ) {
+                    self::collect_changelog_entries( $value, $entries );
+                }
+            } else {
+                foreach ( $node as $value ) {
+                    self::collect_changelog_entries( $value, $entries );
+                }
+            }
+        }
     }
 
     /**
@@ -121,6 +211,11 @@ class AICS_Content_Extractor {
             LIBXML_NOERROR | LIBXML_NOWARNING
         );
         $xpath = new DOMXPath( $dom );
+
+        // Strip scripts and common UI noise before trying specific selectors.
+        // This avoids returning a broad app wrapper that still contains large
+        // client-side payloads such as Next.js page data.
+        self::remove_noise( $dom, $xpath );
 
         // Try changelog-specific selectors.
         $content = self::try_selectors( $dom, $xpath );
@@ -206,9 +301,9 @@ class AICS_Content_Extractor {
     }
 
     /**
-     * Strip noise elements and return cleaned body content.
+     * Remove scripts and common UI noise nodes from the DOM.
      */
-    private static function extract_clean_body( $dom, $xpath ) {
+    private static function remove_noise( $dom, $xpath ) {
         foreach ( self::$noise_tags as $tag ) {
             $elements = $dom->getElementsByTagName( $tag );
             $to_remove = [];
@@ -234,7 +329,12 @@ class AICS_Content_Extractor {
                 }
             }
         }
+    }
 
+    /**
+     * Return cleaned body content after noise nodes have been removed.
+     */
+    private static function extract_clean_body( $dom, $xpath ) {
         $body = $xpath->query( '//body' );
         if ( $body->length > 0 ) {
             return $dom->saveHTML( $body->item( 0 ) );

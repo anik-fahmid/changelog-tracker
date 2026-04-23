@@ -811,6 +811,12 @@ class AICS_Changelog_Summary {
 		}
 
 		$content      = AICS_Content_Extractor::extract( $body, $url );
+		if ( empty( trim( wp_strip_all_tags( $content ) ) ) ) {
+			return [
+				'success' => false,
+				'message' => __( 'Unable to extract readable changelog content from this page.', 'changescout' ),
+			];
+		}
 		$content_hash = md5( $content );
 
 		$old_hash = $cached['content_hash'] ?? '';
