@@ -48,14 +48,17 @@ jQuery(document).ready(function ($) {
 
     /* ───────────── Frequency → day visibility ───────────── */
 
-    $('#aics-frequency').on('change', function () {
-        var freq = $(this).val();
+    function toggleFrequencyFields() {
+        var freq = $('#aics-frequency').val();
         if (freq === 'daily') {
             $('#aics-day').closest('tr').hide();
         } else {
             $('#aics-day').closest('tr').show();
         }
-    });
+    }
+
+    $('#aics-frequency').on('change', toggleFrequencyFields);
+    toggleFrequencyFields();
 
     /* ───────────── Preview Changelog ───────────── */
 
@@ -290,9 +293,8 @@ jQuery(document).ready(function ($) {
             url: AICS.ajax_url,
             type: 'POST',
             data: {
-                action: 'aics_force_fetch',
-                security: AICS.nonce,
-                ignore_diff: '0'
+                action: 'aics_refresh_widget',
+                security: AICS.nonce
             },
             success: function (response) {
                 var color = response.success ? 'green' : 'red';

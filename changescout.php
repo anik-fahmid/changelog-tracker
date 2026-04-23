@@ -59,6 +59,7 @@ class AICS_Changelog_Summary {
 		add_action( 'wp_ajax_aics_preview_fetch_changelog', [ $this, 'handle_changelog_fetch' ] );
 		add_action( 'wp_ajax_aics_test_wp_mail', [ $this, 'test_wp_mail' ] );
 		add_action( 'wp_ajax_aics_force_fetch', [ $this, 'handle_force_fetch' ] );
+		add_action( 'wp_ajax_aics_refresh_widget', [ $this, 'handle_widget_refresh' ] );
 
 		add_action( 'phpmailer_init', [ $this, 'configure_smtp' ] );
 		add_action( 'wp_mail_failed', [ $this, 'capture_mail_error' ] );
@@ -364,7 +365,7 @@ class AICS_Changelog_Summary {
 				<div class="aics-url-row">
 					<input
 						type="url"
-						name="changelog_urls[<?php echo esc_attr( $i ); ?>]"
+						name="aics_changelog_urls[<?php echo esc_attr( $i ); ?>]"
 						value="<?php echo esc_attr( $urls[ $i ] ); ?>"
 						class="regular-text"
 						<?php /* translators: %d: URL number */ ?>
@@ -387,7 +388,7 @@ class AICS_Changelog_Summary {
 	public function render_email_field() {
 		$email = get_option( 'aics_notification_email', get_option( 'admin_email' ) );
 		?>
-		<input type="email" name="notification_email" value="<?php echo esc_attr( $email ); ?>" class="regular-text" placeholder="<?php esc_attr_e( 'Email for notifications', 'changescout' ); ?>">
+		<input type="email" name="aics_notification_email" id="aics_notification_email" value="<?php echo esc_attr( $email ); ?>" class="regular-text" placeholder="<?php esc_attr_e( 'Email for notifications', 'changescout' ); ?>">
 		<p class="description"><?php esc_html_e( 'The email address that receives changelog notifications.', 'changescout' ); ?></p>
 		<?php
 	}
@@ -395,7 +396,7 @@ class AICS_Changelog_Summary {
 	public function render_from_name_field() {
 		$value = get_option( 'aics_email_from_name', '' );
 		?>
-		<input type="text" name="aics_email_from_name" value="<?php echo esc_attr( $value ); ?>" class="regular-text" placeholder="<?php echo esc_attr( get_bloginfo( 'name' ) ); ?>">
+		<input type="text" name="aics_email_from_name" id="aics_email_from_name" value="<?php echo esc_attr( $value ); ?>" class="regular-text" placeholder="<?php echo esc_attr( get_bloginfo( 'name' ) ); ?>">
 		<p class="description"><?php esc_html_e( 'Sender name for emails. Leave empty to use your site name.', 'changescout' ); ?></p>
 		<?php
 	}
@@ -416,6 +417,7 @@ class AICS_Changelog_Summary {
 	public function render_smtp_enabled_field() {
 		$enabled = (int) get_option( 'aics_smtp_enabled', 0 );
 		?>
+		<input type="hidden" name="aics_smtp_enabled" value="0">
 		<label>
 			<input type="checkbox" name="aics_smtp_enabled" id="aics-smtp-enabled" value="1" <?php checked( 1, $enabled ); ?>>
 			<?php esc_html_e( 'Use custom SMTP server for sending emails', 'changescout' ); ?>
@@ -427,7 +429,7 @@ class AICS_Changelog_Summary {
 	public function render_smtp_host_field() {
 		$value = get_option( 'aics_smtp_host', '' );
 		?>
-		<input type="text" name="aics_smtp_host" value="<?php echo esc_attr( $value ); ?>" class="regular-text" placeholder="smtp.gmail.com">
+		<input type="text" name="aics_smtp_host" id="aics_smtp_host" value="<?php echo esc_attr( $value ); ?>" class="regular-text" placeholder="smtp.gmail.com">
 		<p class="description"><?php esc_html_e( 'Your SMTP server hostname. e.g. smtp.gmail.com, smtp.mailgun.org, smtp.sendgrid.net', 'changescout' ); ?></p>
 		<?php
 	}
@@ -435,7 +437,7 @@ class AICS_Changelog_Summary {
 	public function render_smtp_port_field() {
 		$value = (int) get_option( 'aics_smtp_port', 587 );
 		?>
-		<input type="number" name="aics_smtp_port" value="<?php echo esc_attr( $value ); ?>" min="1" max="65535" class="small-text">
+		<input type="number" name="aics_smtp_port" id="aics_smtp_port" value="<?php echo esc_attr( $value ); ?>" min="1" max="65535" class="small-text">
 		<p class="description"><?php esc_html_e( 'Common ports: 587 (TLS), 465 (SSL), 25 (none).', 'changescout' ); ?></p>
 		<?php
 	}
@@ -448,7 +450,7 @@ class AICS_Changelog_Summary {
 			'none' => __( 'None', 'changescout' ),
 		];
 		?>
-		<select name="aics_smtp_encryption">
+		<select name="aics_smtp_encryption" id="aics_smtp_encryption">
 			<?php foreach ( $options as $val => $label ) : ?>
 				<option value="<?php echo esc_attr( $val ); ?>" <?php selected( $current, $val ); ?>><?php echo esc_html( $label ); ?></option>
 			<?php endforeach; ?>
@@ -618,7 +620,7 @@ class AICS_Changelog_Summary {
 						<h2><?php esc_html_e( 'Email Settings', 'changescout' ); ?></h2>
 						<table class="form-table" role="presentation">
 							<tr>
-								<th scope="row"><label for="notification_email"><?php esc_html_e( 'To (Recipient Email)', 'changescout' ); ?></label></th>
+								<th scope="row"><label for="aics_notification_email"><?php esc_html_e( 'To (Recipient Email)', 'changescout' ); ?></label></th>
 								<td><?php $this->render_email_field(); ?></td>
 							</tr>
 							<tr>
@@ -983,6 +985,51 @@ class AICS_Changelog_Summary {
 				'errors'    => count( $error_urls ),
 			] );
 		}
+	}
+
+	/* ───────────────────────── AJAX: Dashboard Refresh ───────── */
+
+	public function handle_widget_refresh() {
+		ignore_user_abort( true );
+
+		check_ajax_referer( 'aics_nonce', 'security' );
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( [ 'message' => __( 'Permission denied.', 'changescout' ) ] );
+		}
+
+		$urls = array_filter( get_option( 'aics_changelog_urls', [] ) );
+
+		if ( empty( $urls ) ) {
+			wp_send_json_error( [ 'message' => __( 'No URLs configured.', 'changescout' ) ] );
+		}
+
+		$updated = 0;
+		$errors  = 0;
+
+		foreach ( $urls as $url ) {
+			$result = $this->process_changelog( $url, true, true );
+
+			if ( ! $result['success'] ) {
+				$errors++;
+				continue;
+			}
+
+			if ( ! empty( $result['changed'] ) ) {
+				$updated++;
+			}
+		}
+
+		wp_send_json_success( [
+			'message' => sprintf(
+				/* translators: 1: updated count, 2: error count */
+				__( 'Refresh complete. Updated: %1$d, Errors: %2$d.', 'changescout' ),
+				$updated,
+				$errors
+			),
+			'updated' => $updated,
+			'errors'  => $errors,
+		] );
 	}
 
 	/* ───────────────────────── SMTP ───────────────────────────── */
