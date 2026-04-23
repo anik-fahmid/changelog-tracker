@@ -3,7 +3,7 @@
 Plugin Name: ChangeScout
 Plugin URI: https://fahmidsroadmap.com/changescout/
 Description: AI-powered changelog tracking and summarization with multi-provider support.
-Version: 1.0
+Version: 1.0.2
 Author: Fahmid Hasan
 Author URI: https://fahmidsroadmap.com/
 Text Domain: changescout
@@ -12,14 +12,14 @@ License URI: https://www.gnu.org/licenses/gpl-2.0.html
 Requires at least: 5.6
 Tested up to: 6.9
 Requires PHP: 7.4
-Stable tag: 1.0
+Stable tag: 1.0.2
 */
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'AICS_VERSION', '1.0' );
+define( 'AICS_VERSION', '1.0.2' );
 define( 'AICS_PATH', plugin_dir_path( __FILE__ ) );
 define( 'AICS_URL', plugin_dir_url( __FILE__ ) );
 
@@ -514,8 +514,7 @@ class AICS_Changelog_Summary {
 		<select name="aics_email_time" id="aics-time">
 			<?php for ( $h = 0; $h < 24; $h++ ) : ?>
 				<option value="<?php echo esc_attr( $h ); ?>" <?php selected( $current, $h ); ?>>
-					<?php echo esc_html( sprintf( '%02d:00', $h ) ); ?>
-					(<?php echo esc_html( wp_date( 'g A', strtotime( $h . ':00' ) ) ); ?>)
+					<?php echo esc_html( gmdate( 'g:i A', $h * HOUR_IN_SECONDS ) ); ?>
 				</option>
 			<?php endfor; ?>
 		</select>

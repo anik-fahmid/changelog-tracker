@@ -3,7 +3,7 @@ Contributors: anikfahmid
 Tags: changelog, ai, email notifications, release notes, automation
 Requires at least: 5.6
 Tested up to: 6.9
-Stable tag: 1.0
+Stable tag: 1.0.2
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -18,7 +18,7 @@ AI-powered changelog tracking that monitors plugin/service release pages and ema
 
 * **Multi-URL tracking** — monitor multiple changelog pages simultaneously
 * **AI summaries** — supports Google Gemini, OpenAI (GPT-4), and Anthropic Claude
-* **Scheduled emails** — daily, weekly, or bi-weekly delivery
+* **Scheduled emails** — weekly, bi-weekly, or monthly delivery
 * **Force send** — fetch and email latest changelogs on demand (independent from scheduled emails)
 * **Change detection** — only emails when content actually changes (MD5 hash comparison)
 * **Custom SMTP** — configure Gmail or any SMTP server for reliable delivery
@@ -27,29 +27,21 @@ AI-powered changelog tracking that monitors plugin/service release pages and ema
 
 = External Services =
 
-This plugin connects to the following external services. By using this plugin, you agree to their respective terms and privacy policies.
-
 **Jina Reader (r.jina.ai)**
-Used to convert changelog web pages into clean, readable text for AI processing. The URL of each tracked changelog page is sent to Jina Reader on each fetch.
 * Service: https://jina.ai
 * Privacy Policy: https://jina.ai/legal/
 
 **Google Gemini API**
-Used for AI summarization when Gemini is selected as the provider. Changelog page content is sent to the API.
 * Service: https://ai.google.dev
 * Terms: https://ai.google.dev/terms
 
 **OpenAI API**
-Used for AI summarization when OpenAI is selected as the provider. Changelog page content is sent to the API.
 * Service: https://openai.com
 * Privacy Policy: https://openai.com/policies/privacy-policy/
 
 **Anthropic Claude API**
-Used for AI summarization when Claude is selected as the provider. Changelog page content is sent to the API.
 * Service: https://anthropic.com
 * Privacy Policy: https://www.anthropic.com/privacy
-
-No data is collected or stored by the plugin author. All external API calls are made directly from your WordPress server to the respective service.
 
 == Installation ==
 
@@ -86,16 +78,18 @@ No. An API key for at least one supported provider is required to generate summa
 
 Enable 2-Factor Authentication on your Google account, then generate an App Password at myaccount.google.com/apppasswords. Use `smtp.gmail.com`, port `587`, encryption `TLS`, and enter your Gmail address and the App Password.
 
-== Screenshots ==
-
-1. General settings — configure AI provider and changelog URLs
-2. Notifications settings — email schedule, SMTP configuration
-3. Preview panel — fetch and preview AI summaries on demand
-4. Email notification — sample changelog summary email
-
 == Changelog ==
 
-= 1.0 =
+= 1.0.2 =
+* Fixed the send time dropdown labels to display clean times like 8:00 AM
+
+= 1.0.1 =
+* Fixed settings fields that were not persisting correctly after save
+* Fixed notification email field saving
+* Fixed SMTP enable/disable setting persistence
+* Fixed dashboard widget refresh behavior
+
+= 1.0.0 =
 * Initial release
 * AI-powered changelog summaries with Gemini, OpenAI, and Claude
 * Auto-detect changelog URLs from any domain
@@ -106,5 +100,5 @@ Enable 2-Factor Authentication on your Google account, then generate an App Pass
 
 == Upgrade Notice ==
 
-= 1.0 =
-Initial release.
+= 1.0.2 =
+Fixes the send time dropdown labels.
