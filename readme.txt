@@ -1,4 +1,4 @@
-=== ChangeScout ===
+=== ChangeScout – Track Changelogs & Release Notes Automatically ===
 Contributors: anikfahmid
 Tags: changelog, ai, email notifications, release notes, automation
 Requires at least: 5.6
