@@ -3,7 +3,7 @@ Contributors: anikfahmid
 Tags: changelog, ai, email notifications, release notes, automation
 Requires at least: 5.6
 Tested up to: 6.9
-Stable tag: 1.0.3
+Stable tag: 1.0.4
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -92,6 +92,9 @@ Enable 2-Factor Authentication on your Google account, then generate an App Pass
 
 == Changelog ==
 
+= 1.0.4 =
+* Updated the public plugin title on WordPress.org while keeping the admin menu label short as ChangeScout
+
 = 1.0.3 =
 * Improved changelog extraction for embedded Featurebase and Next.js changelog pages
 * Improved AI summary guidance for more human-friendly, source-grounded summaries
@@ -119,6 +122,9 @@ Enable 2-Factor Authentication on your Google account, then generate an App Pass
 * Content extraction via Jina Reader
 
 == Upgrade Notice ==
+
+= 1.0.4 =
+Updates the public WordPress.org plugin title.
 
 = 1.0.3 =
 Improves changelog extraction, summary quality, and admin page behavior.
